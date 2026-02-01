@@ -170,27 +170,30 @@ cd Content-Recommendation-System-using-MAB
 ### Step 2: Install Dependencies
 
 ```bash
+# Install backend dependencies
+cd backend
 pip install -r requirements.txt
+cd ..
+
+# Install frontend dependencies
+pip install streamlit plotly pandas psycopg2-binary
 ```
 
-**Required packages** (`requirements.txt`):
+**Backend requirements** (`backend/requirements.txt`):
 ```txt
 fastapi
 uvicorn[standard]
-streamlit
 psycopg2-binary
 numpy
 requests
 python-dotenv
 bcrypt
 pydantic
-plotly
-pandas
 ```
 
 ### Step 3: Environment Configuration
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the **root directory**:
 
 ```env
 DATABASE_URL=postgresql://user:password@host:port/database?sslmode=require
@@ -254,9 +257,19 @@ CREATE TABLE user_models (
 
 ## 💻 Usage
 
-### 1. Start the Backend API
+### Method 1: Run Everything at Once (Recommended)
 
 ```bash
+python run_all.py
+```
+
+This will start both the backend API and frontend Streamlit app automatically.
+
+### Method 2: Manual Start
+
+**Terminal 1 - Start Backend API:**
+```bash
+cd backend
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -264,21 +277,20 @@ The API will be available at `http://127.0.0.1:8000`
 
 📌 **API Documentation**: Visit `http://127.0.0.1:8000/docs` for interactive Swagger UI
 
-### 2. Run the Frontend
-
-In a **new terminal**:
-
+**Terminal 2 - Run Frontend:**
 ```bash
+cd frontend
 streamlit run app.py
 ```
 
 The app will open at `http://localhost:8501`
 
-### 3. Update RL Models (Optional)
+### Update RL Models (Optional)
 
 Run the trainer script to batch-update α/β parameters:
 
 ```bash
+cd backend
 python trainer.py
 ```
 
@@ -368,7 +380,7 @@ Success Rate = α / (α + β)
 
 **Code Implementation:**
 ```python
-# In main.py (FastAPI backend)
+# In backend/main.py (FastAPI backend)
 def recommend(req: RecommendRequest):
     # Load user's α, β for each content
     user_model = {cid: (alpha, beta) for cid, alpha, beta in db_results}
@@ -435,17 +447,22 @@ def epsilon_greedy(alpha, beta, epsilon=0.2):
 ```
 Content-Recommendation-System-using-MAB/
 │
-├── main.py                 # FastAPI backend (API endpoints)
-├── app.py                  # Streamlit frontend (main app)
-├── auth.py                 # Authentication logic (signup/login)
-├── trainer.py              # Batch RL model updater
-├── requirements.txt        # Python dependencies
-├── .env                    # Environment variables (not in repo)
-├── README.md               # This file
+├── backend/
+│   ├── main.py                 # FastAPI backend (API endpoints)
+│   ├── trainer.py              # Batch RL model updater
+│   ├── test_db.py              # Database connection tester
+│   ├── requirements.txt        # Backend dependencies
+│   └── __pycache__/            # Python cache files
 │
-└── (Future additions)
-    ├── Dockerfile          # Container deployment
-    └── tests/              # Unit tests
+├── frontend/
+│   ├── app.py                  # Streamlit main application
+│   ├── auth.py                 # Authentication logic (signup/login)
+│   └── __pycache__/            # Python cache files
+│
+├── run_all.py                  # Script to start both backend & frontend
+├── test.py                     # General testing script
+├── .env                        # Environment variables (DO NOT COMMIT)
+└── README.md                   # This file
 ```
 
 ---
@@ -458,6 +475,7 @@ Content-Recommendation-System-using-MAB/
 4. **A/B Testing**: Compare multiple RL algorithms simultaneously
 5. **Docker Deployment**: Containerize for easy cloud deployment
 6. **Collaborative Filtering**: Hybrid approach combining MAB + CF
+7. **Multi-Platform Support**: Extend beyond YouTube (Spotify, Netflix, etc.)
 
 ---
 
@@ -469,25 +487,72 @@ Content-Recommendation-System-using-MAB/
 ```
 Error: could not connect to server
 ```
-**Solution**: Check `DATABASE_URL` in `.env` and ensure PostgreSQL is running
+**Solution**: 
+- Check `DATABASE_URL` in `.env` file
+- Ensure PostgreSQL/NeonDB is running
+- Verify database credentials
+- Test connection with `python backend/test_db.py`
 
 **2. YouTube API Quota Exceeded**
 ```
 Error: quotaExceeded
 ```
-**Solution**: YouTube API has daily limits. Wait 24 hours or use another API key
+**Solution**: 
+- YouTube API has daily limits (10,000 units/day)
+- Wait 24 hours or use another API key
+- Reduce `max_results` parameter in `fetch_youtube_videos()`
 
 **3. Backend Not Running**
 ```
 Error: Could not connect to backend API
 ```
-**Solution**: Ensure FastAPI is running on `http://127.0.0.1:8000`
+**Solution**: 
+- Ensure FastAPI is running: `cd backend && uvicorn main:app --reload`
+- Check if port 8000 is already in use
+- Verify API_URL in `frontend/app.py` matches backend address
 
 **4. No Videos Showing**
 ```
 Info: No α/β data yet
 ```
-**Solution**: Start giving feedback (👍/👎) to build the model. Run `trainer.py` if needed.
+**Solution**: 
+- Start giving feedback (👍/👎) to build the model
+- Run `python backend/trainer.py` to batch-update models
+- Check database has entries in `interactions` table
+
+**5. Module Import Errors**
+```
+ModuleNotFoundError: No module named 'fastapi'
+```
+**Solution**: 
+- Install dependencies: `cd backend && pip install -r requirements.txt`
+- For frontend: `pip install streamlit plotly pandas psycopg2-binary`
+
+**6. .env File Not Found**
+```
+Error: DATABASE_URL or YOUTUBE_API_KEY not set
+```
+**Solution**: 
+- Create `.env` file in root directory
+- Add required environment variables (see Installation Step 3)
+
+---
+
+## 🧪 Testing
+
+### Test Database Connection
+```bash
+cd backend
+python test_db.py
+```
+
+### Test API Endpoints
+Visit `http://127.0.0.1:8000/docs` after starting backend to test endpoints interactively.
+
+### Manual Testing
+```bash
+python test.py
+```
 
 ---
 
@@ -517,6 +582,15 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+---
+
+## ⚠️ Important Notes
+
+- **Do not commit `.env` file** - It contains sensitive API keys and database credentials
+- Add `.env` to `.gitignore` before committing
+- Use environment variables for all sensitive configuration
+- Backend must be running before starting frontend
 
 ---
 
