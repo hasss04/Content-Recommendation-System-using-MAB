@@ -592,13 +592,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Use environment variables for all sensitive configuration
 - Backend must be running before starting frontend
 
----
-
-## 📧 Contact
-
-Project Link: [https://github.com/hasss04/Content-Recommendation-System-using-MAB](https://github.com/hasss04/Content-Recommendation-System-using-MAB)
-
----
 
 <div align="center">
 
