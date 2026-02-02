@@ -12,7 +12,7 @@ st.set_page_config(page_title="Personalized Content Recommendation System using 
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://neondb_owner:npg_hyYzdvKVD36u@ep-green-hat-ad09amv9-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    "postgresql://"
 )
 API_URL = "http://127.0.0.1:8000"
 
